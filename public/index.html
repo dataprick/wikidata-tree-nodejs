@@ -136,6 +136,9 @@
    .dropdown-settings a input {
      margin-right: 4px;
    }
+  .co_index{
+    display: none;
+  }
   </style>
 <body>
 <div class="container-fluid">
@@ -258,12 +261,32 @@
 <script src="js/wikidataLang.js"></script>
 <script src="storage/images.js"></script>
 
+<!--<script src="js/main.js"></script>-->
+
+<!--<script src="js/bundle.js"></script>-->
 <script src="js/treant-wikidata.js"></script>
 
 <script type="text/javascript">
 
 
-  // var options = [];
+  // // var options = [];
+  // wikidataController.wikidataApi({
+  //   ids     :  ['Q1','Q2'],//make labelIds unique https://futurestud.io/tutorials/node-js-get-an-array-with-unique-values-delete-duplicates
+  //   props   : 'labels' ,
+  //   lang    : 'en',
+  // },function (data) {
+  //   console.log(data);
+  // });
+  // var wbk = require('wikidata-sdk');
+  //
+  // const url = wbk.getManyEntities({
+  //   ids: ['Q1','Q2'],
+  //   languages: [ 'en', 'fr', 'de' ], // returns all languages if not specified
+  //   props: [ 'labels', 'descriptions', 'claims', 'sitelinks/urls' ], // returns all data if not specified
+  //   // format: 'xml', // defaults to json
+  //   // redirections: false // defaults to true
+  // });
+  // console.log(url);
 
   $( '.dropdown-settings a' ).on( 'click', function( event ) {
 
@@ -332,6 +355,18 @@
             .append( "<div><b>" + item.label + "</b><br>" + item.description + "</div>" )
             .appendTo( ul );
     };
+  function wikipedia(e,first,table){
+    console.log("start");
+    var e = $(e);
+    e.off('hover');
+    $.get("https://en.wikipedia.org/api/rest_v1/page/summary/"+e.attr("data-wiki"), function(d) {
+      e.popover({
+        html: true,
+        content: '<div class="wikipediatext">' + d.extract_html + '</div>'+ (d.thumbnail ? '<img src="' + d.thumbnail.source  + '" width="100%" />' : '') + '<a href="https://www.wikidata.org/wiki/Q' + e.attr("data-id") + '" target="_blank">Wikidata</a> - <a href="https://en.wikipedia.org/wiki/' + e.attr("data-wiki") + '" target="_blank">Wikipedia</a>'+ (first ? ' - <a href="' +first + '" target="_blank">Offical Website</a>' : '') + (table ? ' - <a href="/compare/'+table+'?Q82799=' + e.text() + '" target="_blank">'+table+' table</a>' : '')
+
+      }).popover('show');
+    });
+  }
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 

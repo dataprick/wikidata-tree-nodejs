@@ -1,6 +1,3 @@
-// google.load("visualization", "1", {packages:["orgchart"]});
-// google.setOnLoadCallback(drawChart);
-
 moment.locale('de');// , { longDateFormat: {'L': "DD.MM.YYYY" } });
 var relations = [
     { prop : 'P22' , name : 'father' , to_q : false , edge_color : '#3923D6' } ,
@@ -24,11 +21,7 @@ var supportedTypes  = {
         { prop : 'P279' , name : 'subclass' ,  to_q : false , edge_color : '#FF4848' } ,
     ]
 };
-const chunk = (arr, size) =>
-    Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
-        arr.slice(i * size, i * size + size)
-    );
-var treeType, maxLevel, stackChildren, secondLang, showBirthName, chartOptions = [];
+var treeType, maxLevel, secondLang, chartOptions = [];
 var labelIds= [];
 
 
@@ -57,14 +50,7 @@ unflatten = function( array, parent, tree ){
 function selectFormField(name,value) {
     $("form#search select[name='"+name+"'] option").filter(function () { return $(this).html() == value; }).attr('selected','selected');
 }
-function getUrlVars() {
 
-    var vars = {};
-    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
-        vars[decodeURIComponent(key)] = value;
-    });
-    return vars;
-}
 
 function drawChart() {
     var rows = [];
@@ -76,11 +62,16 @@ function drawChart() {
 
     var urlVars = getUrlVars();
 
-
     chartOptions.birthname      = urlVars['options[birthname]'] || false;
     chartOptions.socialmedia    = urlVars['options[socialmedia]'] || false;
     chartOptions.education      = urlVars['options[education]'] || false;
     chartOptions.spouses        = urlVars['options[spouses]'] || false;
+    chartOptions.stackChildren  = getParameterByName('stack') || true;
+
+
+
+    //set false for certain treeTypes
+    if(chartOptions.stackChildren == "false" || treeType == "ancestors" || treeType == "owner"){chartOptions.stackChildren=false;}
 
 
     $(".dropdown-settings a input").each(function (i) {
@@ -105,17 +96,13 @@ function drawChart() {
     treeType = getParameterByName('type') || 'ancestors';
     selectFormField('type',treeType);
 
-    stackChildren = getParameterByName('stack') || true;
-    if(stackChildren == "false" || treeType == "ancestors" || treeType == "owner"){stackChildren=false;}
-
-    chartOptions.stackChildren = stackChildren;
-
     console.log(chartOptions);//c
 
     var orientation =getParameterByName('orientation') || 'NORTH';
     selectFormField('orientation',orientation);
 
-    $.getJSON('/createtree',{
+    $.getJSON('/createtree',
+        {
                 root:root,
                 lang:lang,
                 maxLevel:maxLevel,
@@ -157,6 +144,12 @@ function drawChart() {
                 tree = new Treant( chart_config );
                 $( "#progressbar" ).progressbar({value: 100});
                 $( "#progressbar" ).hide(500);
+                for(i in chartOptions){
+                    // console.log(i);
+                    if(chartOptions[i]) {
+                        $(".co_" + i).show();
+                    }
+                }
                 // $('img.node_image').on('click',  function(event){
                 //     console.log("click");
                 //     var images =nodeImages[$(this).data('item')];
@@ -170,18 +163,14 @@ function drawChart() {
                 // });
             });
 }
+function getUrlVars() {
 
-
-function updateRows(rows) {
-    var data = new google.visualization.DataTable();
-    data.addColumn('string', 'Name');
-    data.addColumn('string', 'Child');
-    data.addColumn('string', 'ToolTip');
-    data.addRows(rows);
-    var chart = new google.visualization.OrgChart(document.getElementById('chart_div'));
-    chart.draw(data, {allowHtml:true});
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[decodeURIComponent(key)] = value;
+    });
+    return vars;
 }
-
 
 function getParameterByName(name) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
